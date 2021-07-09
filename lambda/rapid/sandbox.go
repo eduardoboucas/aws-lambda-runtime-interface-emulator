@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 
+	log "github.com/sirupsen/logrus"
 	"go.amzn.com/lambda/appctx"
 	"go.amzn.com/lambda/core"
 	"go.amzn.com/lambda/interop"
@@ -42,6 +43,8 @@ type Sandbox struct {
 	PreLoadTimeNs      int64
 	Handler            string
 	SignalCtx          context.Context
+	RuntimeAPIHost     string
+	RuntimeAPIPort     int
 }
 
 // Start is a public version of start() that exports only configurable parameters
@@ -55,9 +58,16 @@ func Start(s *Sandbox) {
 	if s.StandaloneMode {
 		s.InteropServer.SetInternalStateGetter(registrationService.GetInternalStateDescriptor(appCtx))
 	}
-	server := rapi.NewServer(RuntimeAPIHost, RuntimeAPIPort, appCtx, registrationService, renderingService, s.EnableTelemetryAPI, s.TelemetryService)
+	server := rapi.NewServer(s.RuntimeAPIHost, s.RuntimeAPIPort, appCtx, registrationService, renderingService, s.EnableTelemetryAPI, s.TelemetryService)
 
 	postLoadTimeNs := metering.Monotime()
+
+	// Start Runtime API Server
+	// If the runtime port is 0, listen will set `port`
+	err := server.Listen()
+	if err != nil {
+		log.WithError(err).Panic("Runtime API Server failed to listen")
+	}
 
 	runtimeAPIAddr := fmt.Sprintf("%s:%d", server.Host(), server.Port())
 	s.Environment.StoreRuntimeAPIEnvironmentVariable(runtimeAPIAddr)
