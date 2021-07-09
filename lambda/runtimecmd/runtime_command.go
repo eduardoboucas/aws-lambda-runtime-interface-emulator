@@ -10,7 +10,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"syscall"
+
+	"go.amzn.com/syscallproxy"
 )
 
 // CustomRuntimeCmd wraps exec.Cmd
@@ -28,7 +29,7 @@ func NewCustomRuntimeCmd(ctx context.Context, bootstrapCmd []string, dir string,
 
 	cmd.Env = env
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.SysProcAttr = syscallproxy.CreateNewProcessGroup()
 
 	if len(extraFiles) > 0 {
 		cmd.ExtraFiles = extraFiles

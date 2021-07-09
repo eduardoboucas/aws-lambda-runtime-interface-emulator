@@ -7,9 +7,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
 
 	log "github.com/sirupsen/logrus"
+	"go.amzn.com/syscallproxy"
 )
 
 const runtimeAPIAddressKey = "AWS_LAMBDA_RUNTIME_API"
@@ -201,7 +201,7 @@ func (e *Environment) getIntEnvVarOrDie(env map[string]string, name string) int 
 // It also makes CloseOnExec for this value.
 func (e *Environment) getSocketEnvVarOrDie(env map[string]string, name string) int {
 	sock := e.getIntEnvVarOrDie(env, name)
-	syscall.CloseOnExec(sock)
+	syscallproxy.CloseOnExec(sock)
 	return sock
 }
 
@@ -221,7 +221,7 @@ func (e *Environment) getOptionalSocketEnvVar(env map[string]string, name string
 		log.WithError(err).WithField("name", name).Fatal("Negative socket descriptor value")
 	}
 
-	syscall.CloseOnExec(sock)
+	syscallproxy.CloseOnExec(sock)
 	return sock
 }
 
