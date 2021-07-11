@@ -4,24 +4,19 @@
 package rapid
 
 import (
-	"syscall"
 	"time"
 
 	"go.amzn.com/lambda/core"
 	"go.amzn.com/lambda/metering"
 	"go.amzn.com/lambda/rapi/model"
 	"go.amzn.com/lambda/rapi/rendering"
+	"go.amzn.com/syscallproxy"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func sigkillProcessGroup(pid int, sigkilledPids map[int]bool) map[int]bool {
-	pgid, err := syscall.Getpgid(pid)
-	if err == nil {
-		syscall.Kill(-pgid, 9) // Negative pid sends signal to all in process group
-	} else {
-		syscall.Kill(pid, 9)
-	}
+	syscallproxy.KillProcessOrProcessGroup(pid)
 	sigkilledPids[pid] = true
 
 	return sigkilledPids
@@ -100,7 +95,7 @@ func shutdownRuntime(execCtx *rapidContext, start time.Time, deadline time.Time,
 		return processesExited, sigkilledPids
 	}
 
-	syscall.Kill(runtime.Pid, syscall.SIGTERM)
+	syscallproxy.KillProcess(runtime.Pid)
 
 	runtimeTimeout := deadline.Sub(start)
 	runtimeTimer := time.NewTimer(runtimeTimeout)

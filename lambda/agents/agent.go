@@ -9,9 +9,9 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"path"
-	"syscall"
 
 	log "github.com/sirupsen/logrus"
+	"go.amzn.com/syscallproxy"
 )
 
 // AgentProcess is the common interface exposed by both internal and external agent processes
@@ -32,7 +32,7 @@ func NewExternalAgentProcess(path string, env []string, logWriter io.Writer) Ext
 	w := NewNewlineSplitWriter(logWriter)
 	command.Stdout = w
 	command.Stderr = w
-	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	command.SysProcAttr = syscallproxy.CreateNewProcessGroup()
 
 	return ExternalAgentProcess{
 		cmd: command,

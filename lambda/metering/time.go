@@ -13,17 +13,20 @@ import (
 func Monotime() int64
 
 //go:linkname walltime runtime.walltime
-func walltime() (sec int64, nsec int32)
+//func walltime() (sec int64, nsec int32)
 
 // MonoToEpoch converts monotonic time nanos to epoch time nanos.
 func MonoToEpoch(t int64) int64 {
-	monoNsec := Monotime()
+	// `runtime.walltime` is not available on Windows. We need an alternative way
+	// of getting the wall clock, but for now we can live with less accuracy.
+	// monoNsec := Monotime()
 
-	wallSec, wallNsec32 := walltime()
-	wallNsec := wallSec*1e9 + int64(wallNsec32)
+	// wallSec, wallNsec32 := walltime()
+	// wallNsec := wallSec*1e9 + int64(wallNsec32)
 
-	clockOffset := wallNsec - monoNsec
-	return t + clockOffset
+	// clockOffset := wallNsec - monoNsec
+	// return t + clockOffset
+	return t
 }
 
 type ExtensionsResetDurationProfiler struct {
