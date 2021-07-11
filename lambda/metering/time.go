@@ -19,14 +19,13 @@ func Monotime() int64
 func MonoToEpoch(t int64) int64 {
 	// `runtime.walltime` is not available on Windows. We need an alternative way
 	// of getting the wall clock, but for now we can live with less accuracy.
-	// monoNsec := Monotime()
+	monoNsec := Monotime()
 
-	// wallSec, wallNsec32 := walltime()
-	// wallNsec := wallSec*1e9 + int64(wallNsec32)
+	wallTime := time.Now()
+	wallNsec := wallTime.UnixNano()
 
-	// clockOffset := wallNsec - monoNsec
-	// return t + clockOffset
-	return t
+	clockOffset := wallNsec - monoNsec
+	return t + clockOffset
 }
 
 type ExtensionsResetDurationProfiler struct {
