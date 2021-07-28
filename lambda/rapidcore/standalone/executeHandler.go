@@ -5,7 +5,6 @@ package standalone
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -15,8 +14,8 @@ import (
 
 // Extracting the invoked function ARN from the FunctionName request parameter
 // https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#API_Invoke_RequestSyntax
-func getFunctionArn(url *url.URL) string {
-	nodes := strings.Split(url.Path, "/")
+func getFunctionArn(urlPath string) string {
+	nodes := strings.Split(urlPath, "/")
 
 	if len(nodes) != 5 {
 		return ""
@@ -31,7 +30,7 @@ func Execute(w http.ResponseWriter, r *http.Request, sandbox rapidcore.Sandbox) 
 		LambdaSegmentID:    r.Header.Get("X-Amzn-Segment-Id"),
 		Payload:            r.Body,
 		CorrelationID:      "invokeCorrelationID",
-		InvokedFunctionArn: getFunctionArn(r.URL),
+		InvokedFunctionArn: getFunctionArn(r.URL.Path),
 	}
 
 	// If we write to 'w' directly and waitUntilRelease fails, we won't be able to propagate error anymore
